@@ -78,7 +78,7 @@ export class DeployingMicoserviceOnEksStack extends cdk.Stack{
     }));
 
     const fluentBitManifestsDir = path.join(__dirname, '../manifests/fluent-bit');
-    const fluentBitFiles = ['namespace.yaml', 'service-account.yaml', 'configmap.yaml', 'daemonset.yaml'];
+    const fluentBitFiles = ['namespace-cloudwatch.yaml', 'service-account.yaml', 'configmap.yaml', 'daemon-set.yaml'];
 
     const loadYamlManifest = (fileName: string) =>
       yaml.parseAllDocuments(fs.readFileSync(path.join(fluentBitManifestsDir, fileName), 'utf8'))
