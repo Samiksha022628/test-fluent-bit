@@ -60,48 +60,49 @@ export class DeployingMicoserviceOnEksStack extends cdk.Stack{
         '--kubelet-preferred-address-types=InternalIP,Hostname,ExternalIP',],},
       });
 
-    const fluentBitNamespace = 'amazon-cloudwatch';
+      const fluentBitNamespace = 'amazon-cloudwatch';
 
-    const fluentBitSA = cluster.addServiceAccount('FluentBitSA', {
-      name: 'fluent-bit',
-      namespace: fluentBitNamespace,
-    });
+const fluentBitSA = cluster.addServiceAccount('FluentBitSA', {
+  name: 'fluent-bit',
+  namespace: fluentBitNamespace,
+});
 
-    fluentBitSA.addToPrincipalPolicy(new iam.PolicyStatement({
-      actions: [
-        'logs:PutLogEvents',
-        'logs:CreateLogStream',
-        'logs:CreateLogGroup',
-        'logs:DescribeLogStreams',
-      ],
-      resources: ['*'], 
-    }));
+fluentBitSA.addToPrincipalPolicy(new iam.PolicyStatement({
+  actions: [
+    'logs:PutLogEvents',
+    'logs:CreateLogStream',
+    'logs:CreateLogGroup',
+    'logs:DescribeLogStreams',
+  ],
+  resources: ['*'], 
+}));
 
-    const fluentBitManifestsDir = path.join(__dirname, '../manifests/fluent-bit');
-    const fluentBitFiles = ['namespace-cloudwatch.yaml', 'service-account.yaml', 'configmap.yaml', 'daemon-set.yaml'];
+const fluentBitManifestsDir = path.join(__dirname, '../manifests/fluent-bit');
+const fluentBitFiles = ['namespace-cloudwatch.yaml', 'service-account.yaml', 'configmap.yaml', 'daemon-set.yaml'];
 
-    const loadYamlManifest = (fileName: string) =>
-      yaml.parseAllDocuments(fs.readFileSync(path.join(fluentBitManifestsDir, fileName), 'utf8'))
-        .map(doc => doc.toJSON())
-        .filter(Boolean);
+const loadYamlManifest = (fileName: string) =>
+  yaml.parseAllDocuments(fs.readFileSync(path.join(fluentBitManifestsDir, fileName), 'utf8'))
+    .map(doc => doc.toJSON())
+    .filter(Boolean);
 
-    const namespaceManifest = loadYamlManifest('namespace-cloudwatch.yaml');
-    const fluentBitOtherResources = fluentBitFiles
-      .filter(f => f !== 'namespace-cloudwatch.yaml')
-      .flatMap(file => {
-        if (file === 'service-account.yaml') {
-          const saContent = fs.readFileSync(path.join(fluentBitManifestsDir, file), 'utf8')
-            .replace('<IRSA_ROLE_ARN_PLACEHOLDER>', fluentBitSA.role.roleArn);
-          return yaml.parseAllDocuments(saContent).map(doc => doc.toJSON()).filter(Boolean);
-        }
-        return loadYamlManifest(file);
-      });
+const namespaceManifest = loadYamlManifest('namespace-cloudwatch.yaml');
 
-    const fluentBitNs = cluster.addManifest('FluentBitNamespace', ...namespaceManifest);
-    const fluentBitResources = cluster.addManifest('FluentBitResources', ...fluentBitOtherResources);
-    fluentBitResources.node.addDependency(fluentBitNs);
+const fluentBitOtherResources = fluentBitFiles
+  .filter(f => f !== 'namespace-cloudwatch.yaml') // ❗ Important fix
+  .flatMap(file => {
+    if (file === 'service-account.yaml') {
+      const saContent = fs.readFileSync(path.join(fluentBitManifestsDir, file), 'utf8')
+        .replace('<IRSA_ROLE_ARN_PLACEHOLDER>', fluentBitSA.role.roleArn);
+      return yaml.parseAllDocuments(saContent).map(doc => doc.toJSON()).filter(Boolean);
+    }
+    return loadYamlManifest(file);
+  });
 
-      const manifestsDir='manifests';
+const fluentBitNs = cluster.addManifest('FluentBitNamespace', ...namespaceManifest);
+const fluentBitResources = cluster.addManifest('FluentBitResources', ...fluentBitOtherResources);
+fluentBitResources.node.addDependency(fluentBitNs);
+
+      const manifestsDir = path.join(__dirname, '../manifests');
       const files =['namespace.yaml','rolebinding.yaml','configMap-secret.yaml','deployment.yaml', 'HPA.yaml', 'job.yaml'];
 
  for (const envName of Object.keys(envconfigs)) {
