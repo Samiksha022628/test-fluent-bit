@@ -88,7 +88,7 @@ const loadYamlManifest = (fileName: string) =>
 const namespaceManifest = loadYamlManifest('namespace-cloudwatch.yaml');
 
 const fluentBitOtherResources = fluentBitFiles
-  .filter(f => f !== 'namespace-cloudwatch.yaml') // ❗ Important fix
+  .filter(f => f !== 'namespace-cloudwatch.yaml') 
   .flatMap(file => {
     if (file === 'service-account.yaml') {
       const saContent = fs.readFileSync(path.join(fluentBitManifestsDir, file), 'utf8')
