@@ -77,8 +77,8 @@ fluentBitSA.addToPrincipalPolicy(new iam.PolicyStatement({
   resources: ['*'], 
 }));
 
-const fluentBitManifestsDir = path.join(__dirname, '../manifests/fluent-bit');
-const fluentBitFiles = ['namespace-cloudwatch.yaml', 'service-account.yaml', 'configmap.yaml', 'daemon-set.yaml'];
+    const fluentBitManifestsDir = path.join(__dirname, '../manifests/fluent-bit');
+    const fluentBitFiles = ['namespace-cloudwatch.yaml', 'service-account.yaml', 'configmap.yaml', 'daemon-set.yaml'];
 
 const loadYamlManifest = (fileName: string) =>
   yaml.parseAllDocuments(fs.readFileSync(path.join(fluentBitManifestsDir, fileName), 'utf8'))
