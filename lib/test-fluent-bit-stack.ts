@@ -98,9 +98,9 @@ const fluentBitOtherResources = fluentBitFiles
     return loadYamlManifest(file);
   });
 
-const fluentBitNs = cluster.addManifest('FluentBitNamespace', ...namespaceManifest);
-const fluentBitResources = cluster.addManifest('FluentBitResources', ...fluentBitOtherResources);
-fluentBitResources.node.addDependency(fluentBitNs);
+      const fluentBitNs = cluster.addManifest('FluentBitNamespace', ...namespaceManifest);
+      const fluentBitResources = cluster.addManifest('FluentBitResources', ...fluentBitOtherResources);
+      fluentBitResources.node.addDependency(fluentBitNs);
 
       const manifestsDir = path.join(__dirname, '../manifests');
       const files =['namespace.yaml','rolebinding.yaml','configMap-secret.yaml','deployment.yaml', 'HPA.yaml', 'job.yaml'];
