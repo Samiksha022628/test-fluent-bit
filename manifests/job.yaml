@@ -1,0 +1,16 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: load-generator
+  namespace: {{ENV}}
+spec:
+  backoffLimit: 0
+  template:
+    spec:
+      containers:
+        - name: busybox
+          image: busybox:1.28
+          command: ["/bin/sh", "-c"]
+          args:
+            - "while true; do wget -q -O- http://php-apache.{{ENV}}.svc.cluster.local; sleep 0.1; done"
+      restartPolicy: Never

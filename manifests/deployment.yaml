@@ -1,0 +1,65 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: deploying-microservice
+  namespace: {{ENV}}
+spec:
+  replicas: {{REPLICA_COUNT}}
+  selector:
+    matchLabels:
+      run: php-apache
+  template:
+    metadata:
+      labels:
+        run: php-apache
+    spec:
+      serviceAccountName: app-service-account
+      volumes:
+        - name: config-volume
+          configMap:
+            name: deploying-microservice-configmap
+        - name: secret-volume
+          secret:
+            secretName: deploying-microservice-secrets
+      containers:
+        - name: php-apache
+          image: php:{{APP_VERSION}}-apache
+          ports:
+            - containerPort: 80
+              name: http
+          resources:
+            requests:
+              cpu: {{REQUEST_CPU}}
+            limits:
+              cpu: {{LIMIT_CPU}}
+          env:
+            - name: ENV
+              value: "{{ENV}}"
+            - name: FEATURE_FLAG
+              value: "{{FEATURE_FLAG}}"
+          envFrom:
+            - configMapRef:
+                name: deploying-microservice-configmap
+            - secretRef:
+                name: deploying-microservice-secrets
+          volumeMounts:
+            - name: config-volume
+              mountPath: /etc/config
+            - name: secret-volume
+              mountPath: /etc/secret
+            - name: config-volume
+              mountPath: /var/www/html/index.php
+              subPath: index.php
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: php-apache
+  namespace: {{ENV}}
+  labels:
+    run: php-apache
+spec:
+  ports:
+    - port: 80
+  selector:
+    run: php-apache
