@@ -67,15 +67,15 @@ export class DeployingMicoserviceOnEksStack extends cdk.Stack{
         namespace: fluentBitNamespace,
       });
 
-fluentBitSA.addToPrincipalPolicy(new iam.PolicyStatement({
-  actions: [
-    'logs:PutLogEvents',
-    'logs:CreateLogStream',
-    'logs:CreateLogGroup',
-    'logs:DescribeLogStreams',
-  ],
-  resources: ['*'], 
-}));
+      fluentBitSA.addToPrincipalPolicy(new iam.PolicyStatement({
+        actions: [
+        'logs:PutLogEvents',
+        'logs:CreateLogStream',
+        'logs:CreateLogGroup',
+        'logs:DescribeLogStreams',
+      ],
+    resources: ['*'], 
+    }));
 
     const fluentBitManifestsDir = path.join(__dirname, '../manifests/fluent-bit');
     const fluentBitFiles = ['namespace-cloudwatch.yaml', 'service-account.yaml', 'configmap.yaml', 'daemon-set.yaml'];
