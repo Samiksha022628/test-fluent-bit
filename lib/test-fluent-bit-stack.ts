@@ -62,10 +62,10 @@ export class DeployingMicoserviceOnEksStack extends cdk.Stack{
 
       const fluentBitNamespace = 'amazon-cloudwatch';
 
-const fluentBitSA = cluster.addServiceAccount('FluentBitSA', {
-  name: 'fluent-bit',
-  namespace: fluentBitNamespace,
-});
+      const fluentBitSA = cluster.addServiceAccount('FluentBitSA', {
+        name: 'fluent-bit',
+        namespace: fluentBitNamespace,
+      });
 
 fluentBitSA.addToPrincipalPolicy(new iam.PolicyStatement({
   actions: [
