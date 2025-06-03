@@ -85,9 +85,9 @@ export class DeployingMicoserviceOnEksStack extends cdk.Stack{
         .map(doc => doc.toJSON())
         .filter(Boolean);
 
-    const namespaceManifest = loadYamlManifest('namespace.yaml');
+    const namespaceManifest = loadYamlManifest('namespace-cloudwatch.yaml');
     const fluentBitOtherResources = fluentBitFiles
-      .filter(f => f !== 'namespace.yaml')
+      .filter(f => f !== 'namespace-cloudwatch.yaml')
       .flatMap(file => {
         if (file === 'service-account.yaml') {
           const saContent = fs.readFileSync(path.join(fluentBitManifestsDir, file), 'utf8')
