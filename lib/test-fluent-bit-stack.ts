@@ -44,6 +44,8 @@ export class DeployingMicoserviceOnEksStack extends cdk.Stack {
       mastersRole: iamroleforcluster,
     });
 
+    const oidcProvider = cluster.openIdConnectProvider;
+
     const nodegroup = cluster.addNodegroupCapacity('NodeGroup', {
       desiredSize: 2,
       instanceTypes: [new ec2.InstanceType('t3.medium')],
@@ -51,9 +53,7 @@ export class DeployingMicoserviceOnEksStack extends cdk.Stack {
     });
 
     nodegroup.role.addManagedPolicy(
-      iam.ManagedPolicy.fromAwsManagedPolicyName(
-        'AmazonSSMManagedInstanceCore'
-      )
+      iam.ManagedPolicy.fromAwsManagedPolicyName('AmazonSSMManagedInstanceCore')
     );
 
     cluster.awsAuth.addRoleMapping(nodegroup.role, {
@@ -79,7 +79,6 @@ export class DeployingMicoserviceOnEksStack extends cdk.Stack {
     const fluentBitManifestsDir = path.join(__dirname, '../manifests/fluent-bit');
     const fluentBitFiles = [
       'namespace-cloudwatch.yaml',
-      'service-account.yaml',
       'configmap.yaml',
       'daemon-set.yaml',
     ];
@@ -92,14 +91,16 @@ export class DeployingMicoserviceOnEksStack extends cdk.Stack {
         .map((doc) => doc.toJSON())
         .filter(Boolean);
 
+    // Apply namespace manifest first
     const namespaceManifest = loadYamlManifest('namespace-cloudwatch.yaml');
     const fluentBitNs = cluster.addManifest('FluentBitNamespace', ...namespaceManifest);
 
+    // Create the IRSA ServiceAccount via CDK, no need for service-account.yaml manifest
     const fluentBitSA = cluster.addServiceAccount('FluentBitSA', {
       name: 'fluent-bit',
       namespace: fluentBitNamespace,
     });
-    fluentBitSA.node.addDependency(fluentBitNs); 
+    fluentBitSA.node.addDependency(fluentBitNs);
 
     fluentBitSA.addToPrincipalPolicy(
       new iam.PolicyStatement({
@@ -113,27 +114,17 @@ export class DeployingMicoserviceOnEksStack extends cdk.Stack {
       })
     );
 
+    // Load remaining Fluent Bit manifests, excluding service-account.yaml entirely
     const fluentBitOtherResources = fluentBitFiles
-      .filter((f) => f !== 'namespace-cloudwatch.yaml')
-      .flatMap((file) => {
-        if (file === 'service-account.yaml') {
-          const saContent = fs
-            .readFileSync(path.join(fluentBitManifestsDir, file), 'utf8')
-            .replace('<IRSA_ROLE_ARN_PLACEHOLDER>', fluentBitSA.role.roleArn);
-          return yaml
-            .parseAllDocuments(saContent)
-            .map((doc) => doc.toJSON())
-            .filter(Boolean);
-        }
-        return loadYamlManifest(file);
-      });
+      .filter((f) => f !== 'namespace-cloudwatch.yaml') // service-account.yaml already removed from list
+      .flatMap((file) => loadYamlManifest(file));
 
     const fluentBitResources = cluster.addManifest(
       'FluentBitResources',
       ...fluentBitOtherResources
     );
-    fluentBitResources.node.addDependency(fluentBitNs); 
-    fluentBitResources.node.addDependency(fluentBitSA); 
+    fluentBitResources.node.addDependency(fluentBitNs);
+    fluentBitResources.node.addDependency(fluentBitSA);
 
     const manifestsDir = path.join(__dirname, '../manifests');
     const files = [
@@ -155,9 +146,7 @@ export class DeployingMicoserviceOnEksStack extends cdk.Stack {
         '{{REQUEST_CPU}}': config.requestCpu || '100m',
         '{{LIMIT_CPU}}': config.limitCpu || '200m',
         '{{FEATURE_FLAG}}':
-          config.featureFlag === undefined
-            ? 'false'
-            : config.featureFlag.toString(),
+          config.featureFlag === undefined ? 'false' : config.featureFlag.toString(),
       };
 
       const replacePlaceholders = (content: string) => {
@@ -177,12 +166,8 @@ export class DeployingMicoserviceOnEksStack extends cdk.Stack {
           .filter(Boolean);
       });
 
-      const namespaceResources = allResources.filter(
-        (res) => res.kind === 'Namespace'
-      );
-      const otherResources = allResources.filter(
-        (res) => res.kind !== 'Namespace'
-      );
+      const namespaceResources = allResources.filter((res) => res.kind === 'Namespace');
+      const otherResources = allResources.filter((res) => res.kind !== 'Namespace');
 
       const namespaceManifest = cluster.addManifest(
         `NamespaceManifest-${envName}`,
