@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 import * as cdk from 'aws-cdk-lib';
-import { DeployingMicoserviceOnEksStack } from '../lib/test-fluent-bit-stack';
+import { DeployingMicroserviceOnEksStack } from '../lib/test-fluent-bit-stack';
 
 const app = new cdk.App();
-new DeployingMicoserviceOnEksStack(app, 'DeployingMicoserviceOnEksStack', {
+new DeployingMicroserviceOnEksStack(app, 'DeployingMicroserviceOnEksStack', {
   /* If you don't specify 'env', this stack will be environment-agnostic.
    * Account/Region-dependent features and context lookups will not work,
    * but a single synthesized template can be deployed anywhere. */
@@ -14,7 +14,7 @@ new DeployingMicoserviceOnEksStack(app, 'DeployingMicoserviceOnEksStack', {
 
   /* Uncomment the next line if you know exactly what Account and Region you
    * want to deploy the stack to. */
-  env: { account: '654654294624', region: 'us-east-1' },
+  env: { account: '654654326569', region: 'us-east-1' },
 
   /* For more information, see https://docs.aws.amazon.com/cdk/latest/guide/environments.html */
 });

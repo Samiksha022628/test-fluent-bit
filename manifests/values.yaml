@@ -1,0 +1,14 @@
+serviceAccount:
+  create: true
+  name: fluent-bit
+  annotations: {} 
+
+cloudWatch:
+  enabled: true
+  logGroupName: /eks/${envName}/app-logs 
+  region: us-east-1                
+  autoCreateGroup: true
+
+tolerations:
+  - key: node-role.kubernetes.io/control-plane
+    effect: NoSchedule
