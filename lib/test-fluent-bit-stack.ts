@@ -164,5 +164,4 @@ export class DeployingMicroserviceOnEksStack extends cdk.Stack {
  
     const mergedManifest = cluster.addManifest('AllAppManifests', ...sortedAllResources);
     mergedManifest.node.addDependency(cloudwatchNamespace);
-  }
-}
+  }}
